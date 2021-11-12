@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"scv/models"
+	"strings"
 )
 
 type FileModel struct {
@@ -24,4 +26,18 @@ func (f FileModel) Get(hash string) (*models.File, error) {
 	}
 
 	return file, nil
+}
+
+func (f FileModel) Insert(file models.File) error {
+	err := file.Insert(context.Background(), f.DB, boil.Infer())
+	if err != nil {
+		switch {
+		case strings.HasPrefix(err.Error(), "models: unable to insert into files: pq: duplicate key value violates unique constraint"):
+			return ErrUniqueViolation
+		default:
+			return err
+		}
+	}
+
+	return nil
 }

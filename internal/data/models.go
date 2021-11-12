@@ -6,18 +6,19 @@ import (
 )
 
 var (
-	ErrRecordNotFound = errors.New("record not found")
-	ErrEditConflict   = errors.New("edit conflict")
+	ErrRecordNotFound  = errors.New("record not found")
+	ErrUniqueViolation = errors.New("duplicate hash value")
+	ErrEditConflict    = errors.New("edit conflict")
 )
 
 type Models struct {
 	Languages LanguageModel
-	Files FileModel
+	Files     FileModel
 }
 
-func NewModels (db *sql.DB) Models {
+func NewModels(db *sql.DB) Models {
 	return Models{
-		Files: FileModel{DB: db},
+		Files:     FileModel{DB: db},
 		Languages: LanguageModel{DB: db},
 	}
 }
