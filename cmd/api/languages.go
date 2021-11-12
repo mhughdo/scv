@@ -6,5 +6,10 @@ import (
 )
 
 func (app *application) listLanguagesHandler(c echo.Context) error {
-	return c.JSON(http.StatusOK, struct{}{})
+	languages, err := app.models.Languages.GetAll()
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, languages)
 }
