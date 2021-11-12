@@ -13,6 +13,7 @@ func (app *application) routes() *echo.Echo {
 	router.GET("/v1/languages", app.listLanguagesHandler)
 	router.GET("/v1/healthcheck", app.healthcheckHandler)
 	router.GET("v1/file/:hash", app.getFileHandler)
+	router.GET("v1/language/:id", app.getLanguageHandler)
 
 	return router
 }
