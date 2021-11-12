@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"scv/models"
 )
 
@@ -17,5 +18,15 @@ func (l LanguageModel) GetAll() ([]*models.Language, error) {
 }
 
 func (l LanguageModel) Get(id int) (*models.Language, error) {
-	return models.FindLanguage(context.Background(), l.DB, id)
+	language, err := models.FindLanguage(context.Background(), l.DB, id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return language, nil
 }
