@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"flag"
 	_ "github.com/lib/pq"
+	"github.com/speps/go-hashids/v2"
 	"os"
 	"scv/internal/data"
 	"scv/internal/jsonlog"
@@ -13,9 +14,10 @@ import (
 )
 
 type config struct {
-	port int
-	env  string
-	db   struct {
+	port        int
+	env         string
+	hashidsSalt string
+	db          struct {
 		dsn          string
 		maxOpenConns int
 		maxIdleConns int
@@ -24,10 +26,11 @@ type config struct {
 }
 
 type application struct {
-	config config
-	logger *jsonlog.Logger
-	wg     sync.WaitGroup
-	models data.Models
+	config  config
+	logger  *jsonlog.Logger
+	wg      sync.WaitGroup
+	models  data.Models
+	hashids *hashids.HashID
 }
 
 func main() {
@@ -36,7 +39,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://postgres:12345678@localhost/scv?sslmode=disable", "PostgreSQL DSN")
-
+	flag.StringVar(&cfg.hashidsSalt, "hashids-salt", "unpredictable secret salt", "Hashids salt")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
@@ -54,10 +57,20 @@ func main() {
 
 	logger.PrintInfo("database connection pool established", nil)
 
+	hd := hashids.NewData()
+	hd.Salt = cfg.hashidsSalt
+	hd.MinLength = 11
+	h, err := hashids.NewWithData(hd)
+
+	if err != nil {
+		logger.PrintFatal(err, nil)
+	}
+
 	app := &application{
-		config: cfg,
-		logger: logger,
-		models: data.NewModels(db),
+		config:  cfg,
+		logger:  logger,
+		models:  data.NewModels(db),
+		hashids: h,
 	}
 
 	err = app.serve()
