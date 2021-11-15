@@ -3,7 +3,9 @@ package main
 import (
 	"errors"
 	"github.com/labstack/echo/v4"
+	"go/format"
 	"net/http"
+	"net/url"
 	"scv/internal/data"
 	"scv/models"
 	"time"
@@ -62,4 +64,44 @@ func (app *application) shareFileHandler(c echo.Context) error {
 			return err
 		}
 	}
+}
+
+func (app *application) formatFileHandler(c echo.Context) error {
+	var input struct {
+		LanguageID int    `json:"language_id"`
+		Content    string `json:"content"`
+	}
+
+	if err := c.Bind(&input); err != nil {
+		return err
+	}
+
+	if input.LanguageID <= 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, "Language ID must greater than 0")
+	}
+
+	if input.Content == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "File content must be provided")
+	}
+
+	unescapedQuery, err := url.QueryUnescape(input.Content)
+	if err != nil {
+		return c.JSON(http.StatusOK, envelope{
+			"content": "",
+			"error":   err.Error(),
+		})
+	}
+
+	formatted, err := format.Source([]byte(unescapedQuery))
+	if err != nil {
+		return c.JSON(http.StatusOK, envelope{
+			"content": "",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, envelope{
+		"content": string(formatted),
+		"error":   "",
+	})
 }
