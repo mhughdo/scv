@@ -23,8 +23,27 @@ func (app *application) getFileHandler(c echo.Context) error {
 			return err
 		}
 	}
+	language, nil := app.models.Languages.Get(file.LanguageID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			return c.JSON(http.StatusNotFound, envelope{"message": "the requested resource could not be found"})
+		default:
+			return err
+		}
+	}
 
-	return c.JSON(http.StatusOK, file)
+	result := &struct {
+		Hash     string          `json:"hash"`
+		Language models.Language `json:"language"`
+		Content  string          `json:"content"`
+	}{
+		Hash:     file.Hash,
+		Language: *language,
+		Content:  file.Content,
+	}
+
+	return c.JSON(http.StatusOK, result)
 }
 
 func (app *application) shareFileHandler(c echo.Context) error {

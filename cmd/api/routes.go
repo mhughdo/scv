@@ -9,6 +9,9 @@ func (app *application) routes() *echo.Echo {
 	router := echo.New()
 	router.Use(middleware.Logger())
 	router.Use(middleware.Recover())
+	router.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+	}))
 
 	router.GET("/v1/languages", app.listLanguagesHandler)
 	router.GET("/v1/healthcheck", app.healthcheckHandler)
