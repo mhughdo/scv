@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"scv/internal/data"
 	"scv/models"
+	"strings"
 	"time"
 )
 
@@ -23,8 +24,27 @@ func (app *application) getFileHandler(c echo.Context) error {
 			return err
 		}
 	}
+	language, err := app.models.Languages.Get(file.LanguageID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			return c.JSON(http.StatusNotFound, envelope{"message": "the requested resource could not be found"})
+		default:
+			return err
+		}
+	}
 
-	return c.JSON(http.StatusOK, file)
+	result := &struct {
+		Hash     string          `json:"hash"`
+		Language models.Language `json:"language"`
+		Content  string          `json:"content"`
+	}{
+		Hash:     file.Hash,
+		Language: *language,
+		Content:  file.Content,
+	}
+
+	return c.JSON(http.StatusOK, result)
 }
 
 func (app *application) shareFileHandler(c echo.Context) error {
@@ -43,6 +63,25 @@ func (app *application) shareFileHandler(c echo.Context) error {
 
 	if input.Content == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "File content must be provided")
+	}
+
+	_, err := app.models.Languages.Get(input.LanguageID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			return c.JSON(http.StatusNotFound, envelope{"message": "the requested resource could not be found"})
+		default:
+			return err
+		}
+	}
+
+	referer := c.Request().Header.Get("Referer")
+	refererStrings := strings.Split(referer, "/")
+	if refererStrings[3] != "" {
+		file, err := app.models.Files.Get(refererStrings[3])
+		if err == nil && file.Hash == refererStrings[3] {
+			return c.String(http.StatusOK, refererStrings[3])
+		}
 	}
 
 	file := models.File{
