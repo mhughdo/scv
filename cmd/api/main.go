@@ -38,7 +38,6 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://postgres:12345678@localhost/scv?sslmode=disable", "PostgreSQL DSN")
 	flag.StringVar(&cfg.hashidsSalt, "hashids-salt", "unpredictable secret salt", "Hashids salt")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
@@ -47,6 +46,14 @@ func main() {
 	flag.Parse()
 
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+
+	defaultDSN := "postgres://postgres:12345678@localhost/scv?sslmode=disable"
+	appEnv := os.Getenv("APP_ENV")
+	if appEnv == "" || appEnv == "dev" {
+		cfg.db.dsn = defaultDSN
+	} else if appEnv == "prod" {
+		cfg.db.dsn = os.Getenv("db-dsn")
+	}
 
 	db, err := openDB(cfg)
 	if err != nil {
