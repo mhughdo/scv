@@ -14,7 +14,7 @@ COPY . .
 RUN go build -o /scv-api ./cmd/api
 
 
-FROM gcr.io/distroless/base-debian11
+FROM gcr.io/distroless/base-debian11 as deployer
 
 WORKDIR /
 

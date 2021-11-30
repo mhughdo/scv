@@ -52,7 +52,7 @@ func main() {
 	if appEnv == "" || appEnv == "dev" {
 		cfg.db.dsn = defaultDSN
 	} else if appEnv == "prod" {
-		cfg.db.dsn = os.Getenv("db-dsn")
+		cfg.db.dsn = os.Getenv("DB_DSN")
 	}
 
 	db, err := openDB(cfg)
