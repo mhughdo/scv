@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scv-backend-deployment
+  labels:
+    app: scv-backend
+  namespace: scv
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: scv-backend
+  template:
+    metadata:
+      labels:
+        app: scv-backend
+    spec:
+      containers:
+        - name: scv-backend-container
+          image: ghcr.io/mhughdo/scv-backend:latest
+          ports:
+            - containerPort: 4000
+          env:
+            - name: DB_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: db-dsn
+                  key: DB_DSN
+            - name: APP_ENV
+              value: "prod"
