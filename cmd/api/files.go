@@ -164,15 +164,15 @@ func (app *application) compileAndRunHandler(c echo.Context) error {
 	if input.Content == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "File content must be provided")
 	}
-	unescapedQuery, err := url.QueryUnescape(input.Content)
-	if err != nil {
-		return c.JSON(http.StatusOK, envelope{
-			"content": "",
-			"message": err.Error(),
-		})
-	}
+	//unescapedQuery, err := url.QueryUnescape(input.Content)
+	//if err != nil {
+	//	return c.JSON(http.StatusOK, envelope{
+	//		"content": "",
+	//		"message": err.Error(),
+	//	})
+	//}
 
-	res, err := sanbox.CompileAndRun(unescapedQuery)
+	res, err := sanbox.CompileAndRun(input.Content)
 	fmt.Println(err)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Unexpected error occured")
