@@ -14,6 +14,4 @@ COPY . .
 RUN go build -o /scv-api ./cmd/api
 EXPOSE 4000
 
-USER nonroot:nonroot
-
 ENTRYPOINT ["/scv-api"]

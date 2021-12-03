@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"go/format"
 	"net/http"
@@ -172,6 +173,7 @@ func (app *application) compileAndRunHandler(c echo.Context) error {
 	}
 
 	res, err := sanbox.CompileAndRun(unescapedQuery)
+	fmt.Println(err)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Unexpected error occured")
 	}
