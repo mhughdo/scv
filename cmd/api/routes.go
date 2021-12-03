@@ -18,6 +18,7 @@ func (app *application) routes() *echo.Echo {
 	router.GET("v1/file/:hash", app.getFileHandler)
 	router.POST("/v1/share", app.shareFileHandler)
 	router.POST("/v1/format", app.formatFileHandler)
+	router.POST("/v1/compile", app.compileAndRunHandler)
 
 	return router
 }

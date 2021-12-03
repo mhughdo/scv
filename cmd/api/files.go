@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"scv/internal/data"
+	sanbox "scv/internal/sandbox"
 	"scv/models"
 	"strings"
 	"time"
@@ -127,7 +128,7 @@ func (app *application) formatFileHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusOK, envelope{
 			"content": "",
-			"error":   err.Error(),
+			"message": err.Error(),
 		})
 	}
 
@@ -135,12 +136,45 @@ func (app *application) formatFileHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusOK, envelope{
 			"content": "",
-			"error":   err.Error(),
+			"message": err.Error(),
 		})
 	}
 
 	return c.JSON(http.StatusOK, envelope{
 		"content": string(formatted),
-		"error":   "",
+		"message": "",
 	})
+}
+
+func (app *application) compileAndRunHandler(c echo.Context) error {
+	var input struct {
+		LanguageID int    `json:"language_id"`
+		Content    string `json:"content"`
+	}
+
+	if err := c.Bind(&input); err != nil {
+		return err
+	}
+
+	if input.LanguageID <= 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, "Language ID must greater than 0")
+	}
+
+	if input.Content == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "File content must be provided")
+	}
+	unescapedQuery, err := url.QueryUnescape(input.Content)
+	if err != nil {
+		return c.JSON(http.StatusOK, envelope{
+			"content": "",
+			"message": err.Error(),
+		})
+	}
+
+	res, err := sanbox.CompileAndRun(unescapedQuery)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Unexpected error occured")
+	}
+
+	return c.JSON(http.StatusCreated, res)
 }
