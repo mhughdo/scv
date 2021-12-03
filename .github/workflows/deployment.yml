@@ -57,7 +57,7 @@ jobs:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          target: deployer
+          target: builder
           tags: ${{ steps.prep.outputs.tagged_image }}, ghcr.io/${{ env.REPOSITORY_OWNER }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           # Note the mode=max here

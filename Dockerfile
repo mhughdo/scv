@@ -12,14 +12,6 @@ RUN go mod download
 COPY . .
 
 RUN go build -o /scv-api ./cmd/api
-
-
-FROM gcr.io/distroless/base-debian11 as deployer
-
-WORKDIR /
-
-COPY --from=builder /scv-api /scv-api
-
 EXPOSE 4000
 
 USER nonroot:nonroot
